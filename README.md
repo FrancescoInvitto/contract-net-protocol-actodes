@@ -18,5 +18,8 @@ The system must be developed using the ActoDeS software and may involve the pres
  F(n-1) = F(n+1) - F(n),    
  F(n-2) = F(n) - F(n-1)
 ```
+# ActoDeS
+ActoDeS is a software
+environment that has the goal of simplifying the development of distributed and complex systems by using a customizable actor model implementation. This technical report has the goal of giving an overview of the software environment together with a short introduction about the steps that a developer should follow for developing applications. See documentation: (aggiungere link)
   
 
