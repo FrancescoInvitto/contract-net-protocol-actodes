@@ -12,11 +12,11 @@ The system must be developed using the ActoDeS software and may involve the pres
  
 ## Fibonacci expressions
 ```math
-F(0) = 0
-F(1) = 1
-F(n) = F(n-1) + F(n-2)
-F(n-1) = F(n+1) - F(n)
-F(n-2) = F(n) - F(n-1)
+  - F(0) = 0
+  - F(1) = 1
+  - F(n) = F(n-1) + F(n-2)
+  - F(n-1) = F(n+1) - F(n)
+  - F(n-2) = F(n) - F(n-1)
 ```
   
 
