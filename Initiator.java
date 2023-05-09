@@ -20,8 +20,6 @@ import it.unipr.sowide.actodes.service.logging.util.NoCycleProcessing;
  */
 public final class Initiator extends Behavior {
 	
-	private static int fsfs = 1;
-
 	private static final long serialVersionUID = 1L;
 
 	private int nWorkers;	//number of total workers
