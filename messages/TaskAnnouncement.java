@@ -12,17 +12,23 @@ public class TaskAnnouncement implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private int taskSpecification; //contains the Fibonacci value to compute
+	private int taskSpecification; //contains the number specified by the manager
 
-	public TaskAnnouncement() {
-	}
-
-	public int getTaskSpecification() {
-		return taskSpecification;
-	}
-
-	public void setTaskSpecification(int taskSpecification) {
+	/**
+	 * Class constructor.
+	 * 
+	 * @param taskSpecification	the number specified by the manager
+	 */
+	public TaskAnnouncement(int taskSpecification) {
 		this.taskSpecification = taskSpecification;
 	}
 
+	/**
+	 * This method is used to get the number specified by the manager.
+	 * 
+	 * @return the number
+	 */
+	public int getTaskSpecification() {
+		return taskSpecification;
+	}
 }
