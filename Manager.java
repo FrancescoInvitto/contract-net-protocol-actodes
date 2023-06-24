@@ -1,7 +1,7 @@
 package it.unipr.desantisinvitto.contractnet;
 
 import java.io.FileWriter;
-import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,15 +56,21 @@ public final class Manager extends Behavior {
 
 	private HashMap<Reference, Integer> workersCosts;	//the cost of the workers to perform the last requested task
 	private HashMap<Reference, Integer> workersWeights;	//the "weights" of the workers
+	private HashMap<Reference, Integer> workersGain;	//the final total gain of each worker
 
 	private int countResponses;	//counts how many responses are received
 	private int countAssigned;	//counts how many workers are involved into the last task
 	private boolean atLeastOneAvailable;	//true if at least one worker is available
-	private int num;	//contains the last randomly generated number	
+	private int num;	//contains the last randomly generated number
+
+	private int receivedReports;
+
+	private boolean saveResults;	//whether the workers save the partial results or not
 
 	//message patterns
 	private static final MessagePattern BID = MessagePattern.contentPattern(new IsInstance(Bid.class));
 	private static final MessagePattern RESULT = MessagePattern.contentPattern(new IsInstance(Long.class));
+	private static final MessagePattern REPORT = MessagePattern.contentPattern(new IsInstance(Integer.class));
 
 	/**
 	 * Class constructor.
@@ -72,12 +78,14 @@ public final class Manager extends Behavior {
 	 * @param ref	the references of the workers
 	 * @param nTasks	the total number of tasks to assign
 	 */
-	public Manager(final Reference[] ref, final int nTasks) {
+	public Manager(final Reference[] ref, final int nTasks, final boolean sR) {
 		this.references = ref;
 
 		this.random = new Random();
 
 		this.remainingTasks = nTasks;
+
+		this.receivedReports = 0;
 
 		this.totalCost = 0;
 		this.countResponses = 0;
@@ -93,7 +101,11 @@ public final class Manager extends Behavior {
 			workersWeights.put(this.references[i], 0);
 		}
 
-		this.atLeastOneAvailable = false;	
+		this.atLeastOneAvailable = false;
+
+		this.workersGain = new HashMap<>();	
+
+		this.saveResults = sR;
 	}
 
 	@Override
@@ -126,11 +138,11 @@ public final class Manager extends Behavior {
 
 			if(this.countResponses == this.references.length) {
 				this.countResponses = 0;
-				
+
 				//all the workers have indicated their (un)availability
 				if(this.atLeastOneAvailable) {
 					this.atLeastOneAvailable = false;
-					
+
 					int min = Collections.min(this.workersCosts.values());	//select the minimum cost to perform the task
 
 					System.out.println("Minimum cost to perform the task: " + min);
@@ -138,12 +150,12 @@ public final class Manager extends Behavior {
 					// iterate over the entries of the HashMap
 					ArrayList<Reference> supportList = new ArrayList<Reference>(); //contains the reference of the workers with minimum cost
 					int max = Integer.MIN_VALUE; 
-					
+
 					for (Map.Entry<Reference, Integer> entry : this.workersCosts.entrySet()) {
 						if (entry.getValue().equals(min)) {
 							supportList.add(entry.getKey());
 							int weight = this.workersWeights.get(entry.getKey());
-					        max = Math.max(max, weight);
+							max = Math.max(max, weight);
 						}
 						entry.setValue(Integer.MAX_VALUE); //reset the cost to the maximum possible value (for next iteration)
 					}
@@ -163,13 +175,13 @@ public final class Manager extends Behavior {
 				}
 				else { //if no one is available it retries to send the announcement
 					System.out.println("No workers available... I repeat the announcement");
-					
+
 					TaskAnnouncement announcement = new TaskAnnouncement(this.num);
 
 					for(int l = 0; l < this.references.length; l++) {
 						send(this.references[l], announcement);
 					}
-					
+
 				}
 
 			}
@@ -193,8 +205,9 @@ public final class Manager extends Behavior {
 					startFibonacci(MIN, MAX);
 				}
 				else {
-					saveReport();
-					send(getParent(), Kill.KILL); //notifies the Initiator it has finished
+					for(int i = 0; i < this.references.length; ++i) {
+						send(this.references[i], Done.DONE);
+					}	
 				}
 
 			}
@@ -203,6 +216,24 @@ public final class Manager extends Behavior {
 		};
 
 		c.define(RESULT, resultHandler);
+
+		MessageHandler reportHandler = (m) -> {
+			this.receivedReports++;
+
+			this.workersGain.put(m.getSender(), (Integer) m.getContent());
+
+			if(this.receivedReports == this.references.length) {
+				String fileName = "report-" + this.references.length + "-" + (this.saveResults ? "with" : "without") + "saving.csv";
+				
+				saveReport(fileName);
+
+				send(getParent(), Kill.KILL); //notifies the Initiator it has finished
+			}
+
+			return null;
+		};
+
+		c.define(REPORT, reportHandler);
 
 		MessageHandler killHandler = (m) -> {
 			send(m.getSender(), Done.DONE);
@@ -223,8 +254,7 @@ public final class Manager extends Behavior {
 		System.out.println("Remaining tasks: " + this.remainingTasks);
 		System.out.println("Generated number: " + this.num);
 
-		//TaskAnnouncement announcement = new TaskAnnouncement(this.num);
-		TaskAnnouncement announcement = new TaskAnnouncement(50);
+		TaskAnnouncement announcement = new TaskAnnouncement(this.num);
 
 		for(int l = 0; l < this.references.length; l++) {
 			send(this.references[l], announcement);
@@ -236,26 +266,34 @@ public final class Manager extends Behavior {
 	/*
 	 * This method is used to save the report.
 	 */
-	private void saveReport() {
-		String csvFile = "report.csv"; // file name
-		String csvHeader = "Label,Value"; // header of the csv file
+	private void saveReport(String fileName) {
+		String header = "";
+		String values = "";
 
-		try (FileWriter writer = new FileWriter(csvFile)) {
-			writer.append(csvHeader);
-			writer.append("\n");
+		for(int i = 0; i < this.references.length; ++i) 
+			header += "Gain worker " + (i + 1) + ";";
 
-			String label = "Total Cost";
-			String costValue = String.valueOf(this.totalCost);
 
-			writer.append(label);
-			writer.append(",");
-			writer.append(costValue);
+		header += "Total manager cost";
 
-			writer.flush();
+		for (Map.Entry<Reference, Integer> entry : this.workersGain.entrySet()) 
+			values += String.valueOf(entry.getValue()) + ";";
 
-			System.out.println("Report correctly saved in the file: " + csvFile);
-		} catch (IOException e) {
+		values += String.valueOf(this.totalCost);
+
+
+		try(PrintWriter outputStream = new PrintWriter(new FileWriter(fileName)))
+		{
+			outputStream.println(header);
+
+			outputStream.println(String.join(";", values));
+
+			System.out.println("Report correctly saved in the file: " + fileName);	      
+		}
+		catch (Exception e)
+		{
 			System.out.println("An error occurred while saving the file: " + e.getMessage());
+			return;
 		}
 	}
 }

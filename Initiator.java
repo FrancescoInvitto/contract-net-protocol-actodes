@@ -63,7 +63,7 @@ public final class Initiator extends Behavior {
 					this.references[i] = actor(new Worker(this.saveResults));
 				}
 				
-				actor(new Manager(this.references, this.nTasks));	
+				actor(new Manager(this.references, this.nTasks, this.saveResults));	
 			}
 			else {
 				System.out.println("Error: the number of workers must be > 0");
@@ -104,7 +104,7 @@ public final class Initiator extends Behavior {
 	}
 
 	public static void main(String[] args) {
-		final int nWorkers = 5; //1, 2, 3, 4, 5
+		final int nWorkers = 3; //1, 2, 3, 4, 5
 		final int nTasks = 50;
 		final boolean saveResults = true;
 

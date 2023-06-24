@@ -37,13 +37,16 @@ public final class Worker extends Behavior {
 	private Reference reference;	//the reference of the manager
 	
 	private boolean saveResults;	//whether to save the partial results or not
+	private int cost;	//the cost of the last task
+	private int totalGain;	//the gain of the worker performing the tasks
 	
 	private Random random;
 	
 	//message patterns
 	private static final MessagePattern TASKANNOUNCEMENT = MessagePattern.contentPattern(new IsInstance(TaskAnnouncement.class));
 	private static final MessagePattern TASKAWARD = MessagePattern.contentPattern(new IsInstance(TaskAward.class));
-	
+	private static final MessagePattern FINISH = MessagePattern.contentPattern(new IsInstance(Done.class));
+
 	/**
 	 * Class constructor.
 	 * 
@@ -59,6 +62,9 @@ public final class Worker extends Behavior {
 		this.reference = null;
 		
 		this.fibonacciNum = 0;
+		
+		this.cost = 0;
+		this.totalGain = 0;
 		
 		this.random = new Random();
 	}
@@ -76,7 +82,7 @@ public final class Worker extends Behavior {
 			int choice = random.nextInt(2);
 			
 			if(choice == 1) {
-				int cost = 0;
+				this.cost = 0;
 				
 				TaskAnnouncement message = (TaskAnnouncement) m.getContent();		
 				this.fibonacciNum = message.getTaskSpecification(); //retrieve the number
@@ -85,10 +91,10 @@ public final class Worker extends Behavior {
 				
 				//update properly the cost of the task
 				if(!this.fibonacciResults.containsKey(this.fibonacciNum)) {
-					cost = this.fibonacciNum - (this.fibonacciResults.size() - 1);
+					this.cost = this.fibonacciNum - (this.fibonacciResults.size() - 1);
 				}
 				
-				Bid costMessage = new Bid(cost);
+				Bid costMessage = new Bid(this.cost);
 				
 				send(reference, costMessage); //send the bid to the manager
 			}
@@ -106,6 +112,8 @@ public final class Worker extends Behavior {
 		c.define(TASKANNOUNCEMENT, announcementHandler);
 		
 		MessageHandler awardHandler = (m) -> {
+			this.totalGain += this.cost;
+			
 			long res = 0;
 			
 			if(this.fibonacciResults.containsKey(this.fibonacciNum)) {
@@ -123,6 +131,14 @@ public final class Worker extends Behavior {
 		};
 		
 		c.define(TASKAWARD, awardHandler);
+		
+		MessageHandler finishHandler = (m) -> {
+			send(m.getSender(), this.totalGain);
+			
+			return null;
+		};
+		
+		c.define(FINISH, finishHandler);
 		
 		MessageHandler killHandler = (m) -> {
 		      send(m.getSender(), Done.DONE);
