@@ -161,8 +161,6 @@ public final class Manager extends Behavior {
 						entry.setValue(Integer.MAX_VALUE); //reset the cost to the maximum possible value (for next iteration)
 					}
 
-					//int max = Collections.max(this.workersWeights.values());
-
 					for (Reference ref : supportList) {	//among the workers with minimum cost, only those with maximum weight are selected
 						if(this.workersWeights.get(ref) == max) {
 							this.totalCost += min;
