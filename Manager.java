@@ -2,6 +2,7 @@ package it.unipr.desantisinvitto.contractnet;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,7 +70,7 @@ public final class Manager extends Behavior {
 
 	//message patterns
 	private static final MessagePattern BID = MessagePattern.contentPattern(new IsInstance(Bid.class));
-	private static final MessagePattern RESULT = MessagePattern.contentPattern(new IsInstance(Long.class));
+	private static final MessagePattern RESULT = MessagePattern.contentPattern(new IsInstance(BigInteger.class));
 	private static final MessagePattern REPORT = MessagePattern.contentPattern(new IsInstance(Integer.class));
 
 	/**

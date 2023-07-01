@@ -104,7 +104,7 @@ public final class Initiator extends Behavior {
 	}
 
 	public static void main(String[] args) {
-		final int nWorkers = 3; //1, 2, 3, 4, 5
+		final int nWorkers = 5; //1, 2, 3, 4, 5
 		final int nTasks = 50;
 		final boolean saveResults = true;
 

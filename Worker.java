@@ -1,5 +1,6 @@
 package it.unipr.desantisinvitto.contractnet;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -32,7 +33,7 @@ public final class Worker extends Behavior {
 	private static final long serialVersionUID = 1L;
 	
 	private int fibonacciNum;
-	private HashMap<Integer, Long> fibonacciResults; //it contains the partial results
+	private HashMap<Integer, BigInteger> fibonacciResults; //it contains the partial results
 	
 	private Reference reference;	//the reference of the manager
 	
@@ -54,8 +55,8 @@ public final class Worker extends Behavior {
 	 */
 	public Worker(final boolean sR) {
 		this.fibonacciResults = new HashMap<>();
-		this.fibonacciResults.put(0, (long) 0);
-		this.fibonacciResults.put(1, (long) 1);
+		this.fibonacciResults.put(0, BigInteger.ZERO);
+		this.fibonacciResults.put(1, BigInteger.ONE);
 		
 		this.saveResults = sR;
 		
@@ -114,7 +115,7 @@ public final class Worker extends Behavior {
 		MessageHandler awardHandler = (m) -> {
 			this.totalGain += this.cost;
 			
-			long res = 0;
+			BigInteger res = BigInteger.ZERO;
 			
 			if(this.fibonacciResults.containsKey(this.fibonacciNum)) {
 				res = this.fibonacciResults.get(this.fibonacciNum); //Fibonacci value already computed
@@ -150,45 +151,30 @@ public final class Worker extends Behavior {
 	}
 	
 	/*
-	 * This method implements the recursive calculation of the Fibonacci value for
+	 * This method implements the iterative calculation of the Fibonacci value for
 	 * the specified number.
 	 */
-	private long calculateFibonacci(int n) {
-        long n1, n2;
-        
-        //result for n-1 is available
-		if(this.fibonacciResults.containsKey(n - 1)) {
-			n1 = this.fibonacciResults.get(n - 1);
-			n2 = this.fibonacciResults.get(n - 2); //the result for n-2 is available for sure
-			
-			if(this.saveResults) {
-				this.fibonacciResults.put(n, n1 + n2);
-			}
-			
-			return n1 + n2;
-		}
-		else if(this.fibonacciResults.containsKey(n - 2)) { //result for n-2 is available
-			n2 = this.fibonacciResults.get(n - 2);
-			n1 = calculateFibonacci(n - 1);
-			
-			if(this.saveResults) {
-				this.fibonacciResults.put(n - 1, n1);
-				this.fibonacciResults.put(n, n1 + n2);
-			}
-			
-			return n1 + n2;
-		}
-		
-		//both results for n-2 and n-1 are not available
-		n1 = calculateFibonacci(n - 1);
-		n2 = calculateFibonacci(n - 2);
+	private BigInteger calculateFibonacci(int n) {
 		
 		if(this.saveResults) {
-			this.fibonacciResults.put(n - 2, n2);
-			this.fibonacciResults.put(n - 1, n1);
-			this.fibonacciResults.put(n, n1 + n2);
+			int start = this.fibonacciResults.size();
+			
+	        for (int i = start; i <= n; i++) {
+	            this.fibonacciResults.put(i, this.fibonacciResults.get(i - 1).add(this.fibonacciResults.get(i - 2)));
+	        }
+	        
+	        return this.fibonacciResults.get(n);
 		}
-		
-        return n1 + n2;
+		else {
+			BigInteger[] fib = new BigInteger[n + 1];
+			fib[0] = BigInteger.ZERO;
+	        fib[1] = BigInteger.ONE;
+	        
+			for (int i = 2; i <= n; i++) {
+				fib[i] = fib[i - 1].add(fib[i - 2]);
+	        }
+			
+			return fib[n];
+		}
     }
 }
