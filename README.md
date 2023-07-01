@@ -29,6 +29,7 @@ In order to run the application the only step to perform is to run the Initiator
 After the execution of the application, a report is saved in the ActoDes folder as csv file; this report contains the gain of every worker and the total cost of the manager. The name of the file will have the following structure: report-NUMWORKERS-X.csv, where X can be:
   - withsaving, if the workers save the partial results;
   - withoutsaving, if the workers do not save the partial results.
-    So, for example, the execution of the application with 3 workers that do not save the partial results will produce the report saved as "report-3-withoutsaving.csv".
+
+So, for example, the execution of the application with 3 workers that do not save the partial results will produce the report saved as "report-3-withoutsaving.csv".
   
 
