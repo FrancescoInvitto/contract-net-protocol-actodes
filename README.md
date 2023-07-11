@@ -31,5 +31,9 @@ After the execution of the application, a report is saved in the ActoDes folder 
   - withoutsaving, if the workers do not save the partial results.
 
 So, for example, the execution of the application with 3 workers that do not save the partial results will produce the report saved as "report-3-withoutsaving.csv".
+
+## How to run the system
+The system is pretty easy to run; in fact it is only necessary to choose the number of workers composing the application and whether they have to save or not the partial results of the computations. In order to do this, in the Initiator.java class you have to modify the value of the variables "nWorkers" and "saveResults". Optionally, it is also possible to select the number of tasks the manager will ask the workers to perform; the default value (which is also the number of tasks required by the experiments) is 50.
+Once you set these parameters you have to save the file and start the Initiator.java class; this class will create the manager and as many workers as specified by the value of the pre-set variable. The Initiator also takes care of terminating the application as soon as the manager and workers have finished running, through the use of a KILL message sent to the whole application.
   
 
